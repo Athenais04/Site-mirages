@@ -26,7 +26,7 @@ def get_shop_items():
 
 # -------------------- UI SELECT MENU --------------------
 class BoostHelpSelect(discord.ui.Select):
-    def __init__(self, view):
+    def __init__(self, parent_view):
         options = [
             discord.SelectOption(label="Solde & Classement", value="balance", emoji="💰"),
             discord.SelectOption(label="Boutique", value="shop", emoji="🛍️"),
@@ -34,10 +34,11 @@ class BoostHelpSelect(discord.ui.Select):
             discord.SelectOption(label="Commandes Admin", value="admin", emoji="🛠️"),
         ]
         super().__init__(placeholder="📂 Choisis une catégorie...", options=options)
-        self.view = view
+        self.parent_view = parent_view  # <- ici, pas self.view
 
     async def callback(self, interaction: discord.Interaction):
-        await self.view.update_embed(interaction, self.values[0])
+        choice = self.values[0]
+        embed = discord.Embed(color=discord.Color.blurple())
 
 # -------------------- UI VIEW --------------------
 class BoostHelpView(discord.ui.View):
@@ -89,7 +90,8 @@ class BoostHelpView(discord.ui.View):
                 "`/postshop`"
             )
 
-        await interaction.response.edit_message(embed=embed, view=self)
+        
+        await interaction.response.edit_message(embed=embed, view=self.parent_view)
 
 # -------------------- COG --------------------
 class BoostCommands(commands.Cog):
