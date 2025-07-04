@@ -150,16 +150,18 @@ class BoostCommands(commands.Cog):
             view = BoostHelpView(user=self.bot.user)
             await channel.send(embed=embed, view=view)
 
-    @app_commands.command(name="boost", description="Affiche le menu BoostCoins")
-    async def boost(self, interaction: discord.Interaction):
+        @app_commands.command(name="postboost", description="Affiche le menu BoostCoins de façon permanente dans un salon.")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def postboost(self, interaction: discord.Interaction):
         embed = discord.Embed(
-            title="📘 Menu BoostCoins",
-            description="Choisis une catégorie ci-dessous pour voir les infos.",
+            title="📘 Aide BoostCoins",
+            description="Choisis une catégorie dans le menu déroulant ci-dessous pour voir les commandes et infos en direct.",
             color=discord.Color.blurple()
         )
-        view = BoostHelpView(user=interaction.user)
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
-
+        view = BoostHelpView()
+        msg = await interaction.channel.send(embed=embed, view=view)
+        view.message = msg
+        await interaction.response.send_message("✅ Menu BoostCoins publié dans ce salon.", ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(BoostCommands(bot))
