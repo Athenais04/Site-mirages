@@ -147,21 +147,6 @@ class BoostCommands(commands.Cog):
             view.message = msg
 
     @app_commands.command(name="removecoins", description="Retirer des BoostCoins à un membre.")
-@app_commands.checks.has_permissions(administrator=True)
-@app_commands.describe(member="Membre à qui retirer des coins", amount="Montant à retirer")
-async def removecoins(self, interaction: discord.Interaction, member: discord.Member, amount: int):
-    if amount <= 0:
-        await interaction.response.send_message("Le montant doit être positif.", ephemeral=True)
-        return
-
-    if not remove_coins(member.id, amount):
-        await interaction.response.send_message(f"{member.display_name} n'a pas assez de BoostCoins.", ephemeral=True)
-        return
-
-    await interaction.response.send_message(f"✅ Retiré {amount} BoostCoins à {member.display_name}.", ephemeral=True)
-
-
-    @app_commands.command(name="removecoins", description="Retirer des BoostCoins à un membre.")
     @app_commands.checks.has_permissions(administrator=True)
     @app_commands.describe(member="Membre à qui retirer des coins", amount="Montant à retirer")
     async def removecoins(self, interaction: discord.Interaction, member: discord.Member, amount: int):
