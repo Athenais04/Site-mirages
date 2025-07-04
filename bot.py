@@ -40,9 +40,11 @@ async def setup_hook(self):
 
 bot = MyBot()
 
-@bot.tree.command(name="test", description="Commande test rapide")
-async def test(interaction: discord.Interaction):
-    await interaction.response.send_message("Test OK")
+@bot.tree.command(name="sync", description="Force la sync des commandes")
+@app_commands.guilds(discord.Object(id=TON_GUILD_ID))
+async def sync(interaction: discord.Interaction):
+    synced = await bot.tree.sync(guild=interaction.guild)
+    await interaction.response.send_message(f"🔄 {len(synced)} commandes synchronisées")
 
 # Démarrer Flask dans un thread séparé
 flask_thread = threading.Thread(target=run_flask)
