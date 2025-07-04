@@ -1,23 +1,52 @@
 import discord
 from discord.ext import commands, tasks
 from discord import app_commands
-import asyncio
+import sqlite3
 
 # -------------------- CONFIG --------------------
 GUILD_ID = 1382310288115761215  # Ton ID de serveur
 CHANNEL_ID = 1382315923427295275  # ID du salon où afficher le menu
+DB_PATH = "boostcoin.db"  # chemin vers ta base SQLite
 
-# -------------------- MOCKED DATABASE FUNCTIONS --------------------
-def get_balance(user_id):
-    return 1200
+# -------------------- DATABASE FUNCTIONS --------------------
+def get_balance(user_id: int) -> int:
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT coins FROM users WHERE user_id = ?", (user_id,))
+    row = cur.fetchone()
+    conn.close()
+    return row[0] if row else 0
+
+def add_coins(user_id: int, amount: int) -> None:
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("INSERT OR IGNORE INTO users (user_id, coins) VALUES (?, 0)", (user_id,))
+    cur.execute("UPDATE users SET coins = coins + ? WHERE user_id = ?", (amount, user_id))
+    conn.commit()
+    conn.close()
+
+def remove_coins(user_id: int, amount: int) -> None:
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("INSERT OR IGNORE INTO users (user_id, coins) VALUES (?, 0)", (user_id,))
+    cur.execute("UPDATE users SET coins = MAX(coins - ?, 0) WHERE user_id = ?", (amount, user_id))
+    conn.commit()
+    conn.close()
 
 def get_top_users(limit=3):
-    return [(123, 2400), (456, 1800), (789, 1500)]
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT user_id, coins FROM users ORDER BY coins DESC LIMIT ?", (limit,))
+    rows = cur.fetchall()
+    conn.close()
+    return rows
 
 def get_inventory(user_id):
+    # Pour l'instant mock, à adapter si tu as une table inventory
     return ["🎁 Pack Bonus", "💎 Gemme rare"]
 
 def get_shop_items():
+    # Mock aussi, tu peux lister depuis ta table shop_items si tu veux
     return [
         ("🔥 Boost XP", "Double ton XP pendant 1h", 300),
         ("📦 Pack Mystère", "Contient un objet aléatoire", 500),
@@ -25,9 +54,8 @@ def get_shop_items():
     ]
 
 # -------------------- UI SELECT MENU --------------------
-
 class BoostHelpSelect(discord.ui.Select):
-    def __init__(self):
+    def __init__(self, parent_view):
         options = [
             discord.SelectOption(label="Solde & Classement", value="balance", emoji="💰"),
             discord.SelectOption(label="Boutique", value="shop", emoji="🛍️"),
@@ -35,17 +63,18 @@ class BoostHelpSelect(discord.ui.Select):
             discord.SelectOption(label="Commandes Admin", value="admin", emoji="🛠️"),
         ]
         super().__init__(placeholder="📂 Choisis une catégorie...", options=options)
+        self.parent_view = parent_view
 
     async def callback(self, interaction: discord.Interaction):
         choice = self.values[0]
-        await self.view.update_embed(interaction, choice)  # APPELLE update_embed DE LA VIEW
+        await self.parent_view.update_embed(interaction, choice)
 
-
+# -------------------- UI VIEW --------------------
 class BoostHelpView(discord.ui.View):
     def __init__(self, user: discord.User):
         super().__init__(timeout=None)
         self.user = user
-        self.select = BoostHelpSelect()
+        self.select = BoostHelpSelect(self)
         self.add_item(self.select)
         self.message = None
 
@@ -92,11 +121,10 @@ class BoostHelpView(discord.ui.View):
 
         await interaction.response.edit_message(embed=embed, view=self)
 
-
+# -------------------- COG --------------------
 class BoostCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        # Tu peux commenter la ligne suivante si tu veux utiliser uniquement la commande postboost
         self.persistent_task.start()
 
     def cog_unload(self):
@@ -117,6 +145,17 @@ class BoostCommands(commands.Cog):
             msg = await channel.send(embed=embed, view=view)
             view.message = msg
 
+    @app_commands.command(name="addcoins", description="Ajouter des BoostCoins à un membre.")
+    @app_commands.checks.has_permissions(administrator=True)
+    @app_commands.describe(member="Membre à qui ajouter des coins", amount="Montant à ajouter")
+    async def addcoins(self, interaction: discord.Interaction, member: discord.Member, amount: int):
+        if amount <= 0:
+            await interaction.response.send_message("Le montant doit être positif.", ephemeral=True)
+            return
+
+        add_coins(member.id, amount)
+        await interaction.response.send_message(f"✅ Ajouté {amount} BoostCoins à {member.display_name}.", ephemeral=True)
+
     @app_commands.command(name="postboost", description="Affiche manuellement le menu BoostCoins dans ce salon.")
     @app_commands.checks.has_permissions(administrator=True)
     async def postboost(self, interaction: discord.Interaction):
@@ -132,4 +171,3 @@ class BoostCommands(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(BoostCommands(bot))
-
