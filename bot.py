@@ -42,7 +42,7 @@ async def setup_hook(self):
 bot = MyBot()
 
 @bot.tree.command(name="sync", description="Force la sync des commandes")
-@app_commands.guilds(discord.Object(id=TON_GUILD_ID))
+@app_commands.guilds(discord.Object(id=1382310288115761215))
 async def sync(interaction: discord.Interaction):
     synced = await bot.tree.sync(guild=interaction.guild)
     await interaction.response.send_message(f"🔄 {len(synced)} commandes synchronisées")
