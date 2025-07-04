@@ -40,6 +40,7 @@ def init_db():
 
     conn.commit()
     conn.close()
+
  if os.path.exists(DB_PATH):
     print("Tables créées ou déjà existantes.")
  else:
