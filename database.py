@@ -1,8 +1,12 @@
+import os
 import sqlite3
 
 DB_PATH = "boostcoins.db"
 
 def init_db():
+    full_path = os.path.abspath(DB_PATH)
+    print(f"Initialisation DB à : {full_path}")  # Ajout print
+
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
@@ -36,50 +40,7 @@ def init_db():
 
     conn.commit()
     conn.close()
-
-def get_balance(user_id: int) -> int:
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute("SELECT coins FROM users WHERE user_id = ?", (user_id,))
-    result = cur.fetchone()
-    conn.close()
-    if result:
-        return result[0]
-    return 0
-
-def add_coins(user_id: int, amount: int):
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-
-    # Vérifie si l'utilisateur existe
-    cur.execute("SELECT coins FROM users WHERE user_id = ?", (user_id,))
-    result = cur.fetchone()
-
-    if result:
-        # Met à jour le solde
-        new_balance = result[0] + amount
-        cur.execute("UPDATE users SET coins = ? WHERE user_id = ?", (new_balance, user_id))
-    else:
-        # Crée un nouvel utilisateur avec le montant
-        cur.execute("INSERT INTO users (user_id, coins) VALUES (?, ?)", (user_id, amount))
-
-    conn.commit()
-    conn.close()
-
-def remove_coins(user_id: int, amount: int):
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-
-    cur.execute("SELECT coins FROM users WHERE user_id = ?", (user_id,))
-    result = cur.fetchone()
-
-    if result:
-        new_balance = max(0, result[0] - amount)
-        cur.execute("UPDATE users SET coins = ? WHERE user_id = ?", (new_balance, user_id))
-
-    conn.commit()
-    conn.close()
-
+    print("Tables créées ou déjà existantes.")
 # Optionnel : créer la base et tables au lancement du module
 if __name__ == "__main__":
     init_db()
