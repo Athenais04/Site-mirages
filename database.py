@@ -1,3 +1,21 @@
+import sqlite3
+
+DB_PATH = "boostcoins.db"
+
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+
+def get_balance(user_id: int) -> int:
+    conn = sqlite3.connect("boostcoins.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT coins FROM users WHERE user_id = ?", (user_id,))
+    result = cursor.fetchone()
+    conn.close()
+    if result:
+        return result[0]
+    return 0
+
 def add_coins(user_id: int, amount: int):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
@@ -22,14 +40,6 @@ def remove_coins(user_id: int, amount: int) -> bool:
     conn.commit()
     conn.close()
     return True
-
-import sqlite3
-
-DB_PATH = "boostcoins.db"
-
-def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
 
     # Crée la table users
     cur.execute("""
