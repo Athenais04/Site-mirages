@@ -22,3 +22,39 @@ def remove_coins(user_id: int, amount: int) -> bool:
     conn.commit()
     conn.close()
     return True
+
+import sqlite3
+
+DB_PATH = "boostcoins.db"
+
+def get_balance(user_id: int) -> int:
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT coins FROM users WHERE user_id = ?", (user_id,))
+    result = cur.fetchone()
+    conn.close()
+    return result[0] if result else 0
+
+def get_top_users(limit: int = 3) -> list[tuple[int, int]]:
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT user_id, coins FROM users ORDER BY coins DESC LIMIT ?", (limit,))
+    results = cur.fetchall()
+    conn.close()
+    return results
+
+def get_inventory(user_id: int) -> list[str]:
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT item_name FROM inventory WHERE user_id = ?", (user_id,))
+    results = cur.fetchall()
+    conn.close()
+    return [row[0] for row in results]
+
+def get_shop_items() -> list[tuple[str, str, int]]:
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT name, description, price FROM shop")
+    results = cur.fetchall()
+    conn.close()
+    return results
