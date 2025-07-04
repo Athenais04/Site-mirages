@@ -9,6 +9,7 @@ from flask import Flask
 
 # Import et initialisation base de données
 from database import init_db
+print("WD avant init_db:", os.getcwd())
 init_db()  # <-- Important, à appeler une seule fois avant de lancer le bot
 
 # Flask app
