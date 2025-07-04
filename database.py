@@ -1,7 +1,7 @@
 import sqlite3
 import os
 
-DB_PATH = "boostcoins.db"
+DB_PATH = os.path.join(os.path.dirname(__file__), "boostcoins.db")
 
 def init_db():
     full_path = os.path.abspath(DB_PATH)
@@ -39,7 +39,6 @@ def init_db():
     conn.close()
     print("Tables créées ou déjà existantes.")
 
-# Ce bloc doit être à la racine, **pas indenté**
 if os.path.exists(DB_PATH):
     print(f"Fichier {DB_PATH} créé ou déjà existant.")
 else:
@@ -48,7 +47,11 @@ else:
 def add_coins(user_id: int, amount: int):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    cur.execute("INSERT INTO users(user_id, coins) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET coins = coins + ?", (user_id, amount, amount))
+    cur.execute(
+        "INSERT INTO users(user_id, coins) VALUES (?, ?) "
+        "ON CONFLICT(user_id) DO UPDATE SET coins = coins + ?",
+        (user_id, amount, amount)
+    )
     conn.commit()
     conn.close()
 
@@ -68,3 +71,4 @@ def get_balance(user_id: int) -> int:
     if row:
         return row[0]
     return 0
+
