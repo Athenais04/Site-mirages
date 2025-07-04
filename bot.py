@@ -26,13 +26,14 @@ class MyBot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix="!", intents=intents)
 
-    async def setup_hook(self):
-        # Charger ta cog boost
-        await self.load_extension("cogs.boost")
-        print("Cog boost chargé.")
-        # Synchroniser les slash commands globales
-        synced = await self.tree.sync()
-        print(f"Slash commands synchronisées : {len(synced)} commandes.")
+    GUILD_ID = 1382310288115761215  # Remplace par l'ID de ton serveur Discord (type int)
+
+async def setup_hook(self):
+    await self.load_extension("cogs.boost")
+    print("Cog boost chargé.")
+    guild = discord.Object(id=GUILD_ID)
+    synced = await self.tree.sync(guild=guild)
+    print(f"Slash commands synchronisées sur le serveur {GUILD_ID} : {len(synced)} commandes.")
 
     async def on_ready(self):
         print(f"Connecté en tant que {self.user} (ID: {self.user.id})")
