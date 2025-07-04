@@ -59,4 +59,7 @@ def remove_coins(user_id: int, amount: int):
 def get_balance(user_id: int) -> int:
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    cur.execute("SELEC
+    cur.execute("SELECT coins FROM users WHERE user_id = ?", (user_id,))
+    result = cur.fetchone()
+    conn.close()
+    return result[0] if result else 0
