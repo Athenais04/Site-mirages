@@ -7,6 +7,10 @@ from discord import app_commands
 from cogs.boost import BoostHelpView
 from flask import Flask
 
+# Import et initialisation base de données
+from database import init_db
+init_db()  # <-- Important, à appeler une seule fois avant de lancer le bot
+
 # Flask app
 app = Flask(__name__)
 @app.route("/")
