@@ -1,9 +1,10 @@
 import sqlite3
+import os  # N'oublie pas cet import !
 
 DB_PATH = "boostcoins.db"
 
 def init_db():
-   full_path = os.path.abspath(DB_PATH)
+    full_path = os.path.abspath(DB_PATH)
     print(f"Initialisation DB à : {full_path}")  # Ajout print
 
     conn = sqlite3.connect(DB_PATH)
@@ -40,7 +41,6 @@ def init_db():
     conn.commit()
     conn.close()
     print("Tables créées ou déjà existantes.")
-    pass
 
 def add_coins(user_id: int, amount: int):
     conn = sqlite3.connect(DB_PATH)
@@ -60,6 +60,8 @@ def get_balance(user_id: int) -> int:
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("SELECT coins FROM users WHERE user_id = ?", (user_id,))
-    result = cur.fetchone()
+    row = cur.fetchone()
     conn.close()
-    return result[0] if result else 0
+    if row:
+        return row[0]
+    return 0
