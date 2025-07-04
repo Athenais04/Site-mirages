@@ -3,6 +3,7 @@ import os
 import threading
 import discord
 from discord.ext import commands
+from discord import app_commands
 from flask import Flask
 sys.path.append(os.path.abspath('.'))
 
