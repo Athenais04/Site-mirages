@@ -79,4 +79,8 @@ class BoostCommands(commands.Cog):
         view = BoostHelpView()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         # Petit délai pour que le message soit bien envoyé
-        await asynci
+        await asyncio.sleep(0.5)
+        view.message = await interaction.original_message()
+
+async def setup(bot):
+    await bot.add_cog(BoostCommands(bot))
