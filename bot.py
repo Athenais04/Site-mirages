@@ -3,6 +3,7 @@ import threading
 import discord
 from discord.ext import commands
 from flask import Flask
+sys.path.append(os.path.abspath('.'))
 
 # Création de l'app Flask
 app = Flask(__name__)
