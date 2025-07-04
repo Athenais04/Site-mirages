@@ -42,6 +42,10 @@ bot = MyBot()
 flask_thread = threading.Thread(target=run_flask)
 flask_thread.start()
 
+print("Current working directory:", os.getcwd())
+print("Content of current dir:", os.listdir('.'))
+print("Content of cogs dir:", os.listdir('./cogs') if os.path.exists('./cogs') else "cogs folder not found")
+
 TOKEN = os.getenv("DISCORD_TOKEN")
 
 bot.run(TOKEN)
