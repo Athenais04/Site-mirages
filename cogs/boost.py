@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands, tasks
 from discord import app_commands
+from database import get_balance, get_top_users, get_shop_items
 import asyncio
 import sqlite3  # ou autre méthode pour accéder aux données
 
