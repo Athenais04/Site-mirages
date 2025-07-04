@@ -33,8 +33,52 @@ class BoostHelpSelect(discord.ui.Select):
         super().__init__(placeholder="📂 Choisis une catégorie...", options=options)
         self.view = view
 
-    async def callback(self, interaction: discord.Interaction):
-        await self.view.update_embed(interaction, self.values[0])
+        async def callback(self, interaction: discord.Interaction):
+        choice = self.values[0]
+        embed = discord.Embed(color=discord.Color.blurple())
+
+        if choice == "balance":
+            coins = get_balance(interaction.user.id)
+            top_users = get_top_users()
+
+            top_text = ""
+            for i, (uid, coins_amt) in enumerate(top_users, start=1):
+                user = interaction.guild.get_member(uid)
+                name = user.display_name if user else f"<@{uid}>"
+                top_text += f"**#{i}** {name} — {coins_amt} 💰\n"
+
+            embed.title = "💰 Solde & Classement"
+            embed.description = (
+                f"**Ton solde :** {coins} BoostCoins\n\n"
+                f"**Top 3 des plus riches :**\n{top_text}"
+            )
+
+        elif choice == "shop":
+            items = get_shop_items()
+            embed.title = "🛍️ Boutique"
+            embed.description = "\n".join(
+                f"• **{name}** — {price}💰\n> {desc}" for name, desc, price in items
+            ) or "La boutique est vide pour le moment."
+
+        elif choice == "casino":
+            embed.title = "🎰 Jeux de casino"
+            embed.description = (
+                "`/roulette` — Jouer à la roulette\n"
+                "`/dice` — Jeu de dés\n"
+                "`/slot` — Machine à sous"
+            )
+
+        elif choice == "admin":
+            embed.title = "🛠️ Commandes Admin"
+            embed.description = (
+                "`/addcoins @membre montant` — Ajouter des BoostCoins\n"
+                "`/removecoins @membre montant` — Retirer des BoostCoins\n"
+                "`/edititem <id> champ valeur` — Modifier un article\n"
+                "`/postshop` — Poster le message permanent boutique"
+            )
+
+        await interaction.response.edit_message(embed=embed, view=self.parent_view)
+
 
 
 class BoostHelpView(discord.ui.View):
