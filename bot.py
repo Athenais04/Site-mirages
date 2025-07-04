@@ -42,6 +42,7 @@ bot = MyBot()
 @bot.event
 async def on_ready():
     print(f"✅ Connecté en tant que {bot.user} (ID: {bot.user.id})")
+    bot.add_view(BoostHelpView(user=bot.user))
 
 @bot.tree.command(name="sync", description="Force la sync des commandes")
 @app_commands.guilds(discord.Object(id=GUILD_ID))
