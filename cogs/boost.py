@@ -64,6 +64,8 @@ class BoostHelpSelect(discord.ui.Select):
             discord.SelectOption(label="Commandes Admin", value="admin", emoji="🛠️"),
         ]
         super().__init__(placeholder="📂 Choisis une catégorie...", options=options)
+        custom_id="boostcoins_menu"
+)
         self.parent_view = parent_view
 
     async def callback(self, interaction: discord.Interaction):
@@ -78,6 +80,9 @@ class BoostHelpView(discord.ui.View):
         self.select = BoostHelpSelect(self)
         self.add_item(self.select)
         self.message = None
+
+def from_message(cls, message):
+        return cls(user=message.author)
 
     async def update_embed(self, interaction: discord.Interaction, choice: str):
         embed = discord.Embed(color=discord.Color.blurple())
