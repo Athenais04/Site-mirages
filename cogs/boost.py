@@ -63,12 +63,14 @@ class BoostHelpSelect(discord.ui.Select):
             discord.SelectOption(label="Jeux de casino", value="casino", emoji="🎰"),
             discord.SelectOption(label="Commandes Admin", value="admin", emoji="🛠️"),
         ]
-        super().__init__(placeholder="📂 Choisis une catégorie...", options=options)
-        custom_id="boostcoins_menu"
-)
+        super().__init__(
+            placeholder="📂 Choisis une catégorie...",
+            options=options,
+            custom_id="boostcoins_menu"
+        )
         self.parent_view = parent_view
 
-        async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: discord.Interaction):
         choice = self.values[0]
         try:
             await self.parent_view.update_embed(interaction, choice)
