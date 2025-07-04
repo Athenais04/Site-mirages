@@ -27,34 +27,41 @@ import sqlite3
 
 DB_PATH = "boostcoins.db"
 
-def get_balance(user_id: int) -> int:
+def init_db():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    cur.execute("SELECT coins FROM users WHERE user_id = ?", (user_id,))
-    result = cur.fetchone()
-    conn.close()
-    return result[0] if result else 0
 
-def get_top_users(limit: int = 3) -> list[tuple[int, int]]:
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute("SELECT user_id, coins FROM users ORDER BY coins DESC LIMIT ?", (limit,))
-    results = cur.fetchall()
-    conn.close()
-    return results
+    # Crée la table users
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        user_id INTEGER PRIMARY KEY,
+        coins INTEGER NOT NULL DEFAULT 0
+    )
+    """)
 
-def get_inventory(user_id: int) -> list[str]:
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute("SELECT item_name FROM inventory WHERE user_id = ?", (user_id,))
-    results = cur.fetchall()
-    conn.close()
-    return [row[0] for row in results]
+    # Crée la table inventory
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS inventory (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        item_name TEXT NOT NULL,
+        FOREIGN KEY(user_id) REFERENCES users(user_id)
+    )
+    """)
 
-def get_shop_items() -> list[tuple[str, str, int]]:
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute("SELECT name, description, price FROM shop")
-    results = cur.fetchall()
+    # Crée la table shop
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS shop (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT,
+        price INTEGER NOT NULL
+    )
+    """)
+
+    conn.commit()
     conn.close()
-    return results
+
+if __name__ == "__main__":
+    init_db()
+    print("Database initialized.")
