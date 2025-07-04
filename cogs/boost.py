@@ -7,6 +7,25 @@ import asyncio
 GUILD_ID = 1382310288115761215  # Ton ID de serveur
 CHANNEL_ID = 1382315923427295275  # ID du salon où afficher le menu
 
+# -------------------- MOCKED DATABASE FUNCTIONS --------------------
+def get_balance(user_id):
+    return 1200
+
+def get_top_users(limit=3):
+    return [(123, 2400), (456, 1800), (789, 1500)]
+
+def get_inventory(user_id):
+    return ["🎁 Pack Bonus", "💎 Gemme rare"]
+
+def get_shop_items():
+    return [
+        ("🔥 Boost XP", "Double ton XP pendant 1h", 300),
+        ("📦 Pack Mystère", "Contient un objet aléatoire", 500),
+        ("🎫 Ticket VIP", "Accès VIP pendant 24h", 1000)
+    ]
+
+# -------------------- UI SELECT MENU --------------------
+
 class BoostHelpSelect(discord.ui.Select):
     def __init__(self):
         options = [
