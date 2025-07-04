@@ -106,3 +106,7 @@ class BoostCommands(commands.Cog):
         msg = await interaction.channel.send(embed=embed, view=view)
         view.message = msg
         await interaction.response.send_message("✅ Menu BoostCoins publié dans ce salon.", ephemeral=True)
+
+async def setup(bot):
+    await bot.add_cog(BoostCommands(bot))
+
