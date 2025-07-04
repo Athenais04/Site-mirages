@@ -1,16 +1,15 @@
 import sqlite3
-import os  # N'oublie pas cet import !
+import os
 
 DB_PATH = "boostcoins.db"
 
 def init_db():
     full_path = os.path.abspath(DB_PATH)
-    print(f"Initialisation DB à : {full_path}")  # Ajout print
+    print(f"Initialisation DB à : {full_path}")
 
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
-    # Création table users
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users (
         user_id INTEGER PRIMARY KEY,
@@ -18,7 +17,6 @@ def init_db():
     )
     """)
 
-    # Création table inventory
     cur.execute("""
     CREATE TABLE IF NOT EXISTS inventory (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,7 +26,6 @@ def init_db():
     )
     """)
 
-    # Création table shop
     cur.execute("""
     CREATE TABLE IF NOT EXISTS shop (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,10 +37,12 @@ def init_db():
 
     conn.commit()
     conn.close()
-
- if os.path.exists(DB_PATH):
     print("Tables créées ou déjà existantes.")
- else:
+
+# Ce bloc doit être à la racine, **pas indenté**
+if os.path.exists(DB_PATH):
+    print(f"Fichier {DB_PATH} créé ou déjà existant.")
+else:
     print(f"Attention : {DB_PATH} non créé.")
 
 def add_coins(user_id: int, amount: int):
