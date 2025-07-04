@@ -3,6 +3,10 @@ from discord.ext import commands, tasks
 from discord import app_commands
 import asyncio
 
+# -------------------- CONFIG --------------------
+GUILD_ID = 1382310288115761215  # Ton ID de serveur
+CHANNEL_ID = 1382315923427295275  # ID du salon où afficher le menu
+
 class BoostHelpSelect(discord.ui.Select):
     def __init__(self):
         options = [
