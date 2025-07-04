@@ -38,11 +38,11 @@ async def setup_hook(self):
     async def on_ready(self):
         print(f"Connecté en tant que {self.user} (ID: {self.user.id})")
 
+bot = MyBot()
+
 @bot.tree.command(name="test", description="Commande test rapide")
 async def test(interaction: discord.Interaction):
     await interaction.response.send_message("Test OK")
-
-bot = MyBot()
 
 # Démarrer Flask dans un thread séparé
 flask_thread = threading.Thread(target=run_flask)
