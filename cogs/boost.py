@@ -1,3 +1,8 @@
+import discord
+from discord.ext import commands, tasks
+from discord import app_commands
+import asyncio
+
 class BoostHelpSelect(discord.ui.Select):
     def __init__(self):
         options = [
