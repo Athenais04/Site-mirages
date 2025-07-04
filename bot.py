@@ -8,10 +8,16 @@ from cogs.boost import BoostHelpView
 from flask import Flask
 
 # Import et initialisation base de données
-from database import init_db
-print("Avant init_db()")
+from database import init_db, add_coins, get_balance
+
 init_db()
-print("Après init_db()")
+
+# Exemple d'utilisation
+user_id_example = 123456
+
+add_coins(user_id_example, 50)
+balance = get_balance(user_id_example)
+print(f"Solde pour l'user {user_id_example} : {balance} coins")
 
 # Flask app
 app = Flask(__name__)
