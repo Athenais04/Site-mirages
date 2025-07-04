@@ -86,7 +86,8 @@ class BoostHelpView(discord.ui.View):
         self.add_item(self.select)
         self.message = None
 
-def from_message(cls, message):
+    @classmethod
+    def from_message(cls, message):
         return cls(user=message.author)
 
     async def update_embed(self, interaction: discord.Interaction, choice: str):
