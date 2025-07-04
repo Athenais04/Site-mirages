@@ -6,6 +6,7 @@ from discord.ext import commands
 from discord import app_commands
 from cogs.boost import BoostHelpView
 from flask import Flask
+from database import init_db
 
 # Import et initialisation base de données
 from database import init_db
