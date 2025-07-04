@@ -40,7 +40,10 @@ def init_db():
 
     conn.commit()
     conn.close()
+ if os.path.exists(DB_PATH):
     print("Tables créées ou déjà existantes.")
+ else:
+    print(f"Attention : {DB_PATH} non créé.")
 
 def add_coins(user_id: int, amount: int):
     conn = sqlite3.connect(DB_PATH)
