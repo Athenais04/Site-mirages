@@ -5,11 +5,9 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from flask import Flask
-sys.path.append(os.path.abspath('.'))
 
-# Création de l'app Flask
+# Flask app
 app = Flask(__name__)
-
 @app.route("/")
 def home():
     return "Bot Discord BoostCoins en ligne !"
@@ -18,43 +16,51 @@ def run_flask():
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
 
+# ID de ton serveur Discord (assure-toi qu'il est correct)
+GUILD_ID = 1382310288115761215
+
+# Intents
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 intents.voice_states = True
 
+# Bot personnalisé
 class MyBot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix="!", intents=intents)
 
-    GUILD_ID = 1382310288115761215  # Remplace par l'ID de ton serveur Discord (type int)
-
-async def setup_hook(self):
-    await self.load_extension("cogs.boost")
-    print("Cog boost chargé.")
-    guild = discord.Object(id=GUILD_ID)
-    synced = await self.tree.sync(guild=guild)
-    print(f"Slash commands synchronisées sur le serveur {GUILD_ID} : {len(synced)} commandes.")
-
-    async def on_ready(self):
-        print(f"Connecté en tant que {self.user} (ID: {self.user.id})")
+    async def setup_hook(self):
+        await self.load_extension("cogs.boost")
+        print("✅ Cog boost chargé.")
+        guild = discord.Object(id=GUILD_ID)
+        synced = await self.tree.sync(guild=guild)
+        print(f"✅ Slash commands synchronisées : {len(synced)} sur le serveur {GUILD_ID}")
 
 bot = MyBot()
 
+@bot.event
+async def on_ready():
+    print(f"✅ Connecté en tant que {bot.user} (ID: {bot.user.id})")
+
 @bot.tree.command(name="sync", description="Force la sync des commandes")
-@app_commands.guilds(discord.Object(id=1382310288115761215))
+@app_commands.guilds(discord.Object(id=GUILD_ID))
 async def sync(interaction: discord.Interaction):
     synced = await bot.tree.sync(guild=interaction.guild)
-    await interaction.response.send_message(f"🔄 {len(synced)} commandes synchronisées")
+    await interaction.response.send_message(f"🔄 {len(synced)} commandes synchronisées", ephemeral=True)
 
-# Démarrer Flask dans un thread séparé
+# Thread Flask
 flask_thread = threading.Thread(target=run_flask)
 flask_thread.start()
 
+# Logs utiles
 print("Current working directory:", os.getcwd())
 print("Content of current dir:", os.listdir('.'))
 print("Content of cogs dir:", os.listdir('./cogs') if os.path.exists('./cogs') else "cogs folder not found")
 
+# Lancer le bot
 TOKEN = os.getenv("DISCORD_TOKEN")
-
-bot.run(TOKEN)
+if not TOKEN:
+    print("❌ Le token Discord n'est pas défini dans les variables d'environnement.")
+else:
+    bot.run(TOKEN)
