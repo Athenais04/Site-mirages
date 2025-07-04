@@ -68,9 +68,12 @@ class BoostHelpSelect(discord.ui.Select):
 )
         self.parent_view = parent_view
 
-    async def callback(self, interaction: discord.Interaction):
+        async def callback(self, interaction: discord.Interaction):
         choice = self.values[0]
-        await self.parent_view.update_embed(interaction, choice)
+        try:
+            await self.parent_view.update_embed(interaction, choice)
+        except Exception as e:
+            await interaction.response.send_message(f"❌ Erreur: {e}", ephemeral=True)
 
 # -------------------- UI VIEW --------------------
 class BoostHelpView(discord.ui.View):
