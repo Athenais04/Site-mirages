@@ -5,9 +5,9 @@ from database import add_coins, remove_coins, get_balance
 import sqlite3
 
 # -------------------- CONFIG --------------------
-GUILD_ID = 1382310288115761215  # Ton ID de serveur
-CHANNEL_ID = 1382315923427295275  # ID du salon où afficher le menu
-DB_PATH = "boostcoin.db"  # chemin vers ta base SQLite
+GUILD_ID = 1382310288115761215
+CHANNEL_ID = 1382315923427295275
+DB_PATH = "boostcoins.db"  # Assure-toi que c’est bien le nom correct
 
 # -------------------- DATABASE FUNCTIONS --------------------
 def get_balance(user_id: int) -> int:
@@ -43,11 +43,9 @@ def get_top_users(limit=3):
     return rows
 
 def get_inventory(user_id):
-    # Pour l'instant mock, à adapter si tu as une table inventory
     return ["🎁 Pack Bonus", "💎 Gemme rare"]
 
 def get_shop_items():
-    # Mock aussi, tu peux lister depuis ta table shop_items si tu veux
     return [
         ("🔥 Boost XP", "Double ton XP pendant 1h", 300),
         ("📦 Pack Mystère", "Contient un objet aléatoire", 500),
@@ -60,7 +58,7 @@ class BoostHelpSelect(discord.ui.Select):
         options = [
             discord.SelectOption(label="Solde & Classement", value="balance", emoji="💰"),
             discord.SelectOption(label="Boutique", value="shop", emoji="🛍️"),
-            discord.SelectOption(label="Jeux de casino", value="casino", emoji="🎰"),
+            discord.SelectOption(label="Casino", value="casino", emoji="🎰"),
             discord.SelectOption(label="Commandes Admin", value="admin", emoji="🛠️"),
         ]
         super().__init__(
@@ -71,11 +69,7 @@ class BoostHelpSelect(discord.ui.Select):
         self.parent_view = parent_view
 
     async def callback(self, interaction: discord.Interaction):
-        choice = self.values[0]
-        try:
-            await self.parent_view.update_embed(interaction, choice)
-        except Exception as e:
-            await interaction.response.send_message(f"❌ Erreur: {e}", ephemeral=True)
+        await self.parent_view.update_embed(interaction, self.values[0])
 
 # -------------------- UI VIEW --------------------
 class BoostHelpView(discord.ui.View):
@@ -84,11 +78,6 @@ class BoostHelpView(discord.ui.View):
         self.user = user
         self.select = BoostHelpSelect(self)
         self.add_item(self.select)
-        self.message = None
-
-    @classmethod
-    def from_message(cls, message):
-        return cls(user=message.author)
 
     async def update_embed(self, interaction: discord.Interaction, choice: str):
         embed = discord.Embed(color=discord.Color.blurple())
@@ -115,20 +104,20 @@ class BoostHelpView(discord.ui.View):
             )
 
         elif choice == "casino":
-            embed.title = "🎰 Jeux de casino"
+            embed.title = "🎰 Casino"
             embed.description = (
                 "`/roulette` — Parie sur un numéro ou une couleur\n"
                 "`/dice` — Lance les dés contre le bot\n"
-                "`/slot` — Tire la manette !"
+                "`/blackjack` — Joue contre la banque"
             )
 
         elif choice == "admin":
             embed.title = "🛠️ Commandes Admin"
             embed.description = (
-                "`/addcoins @membre montant`\n"
-                "`/removecoins @membre montant`\n"
-                "`/edititem id champ valeur`\n"
-                "`/postshop`"
+                "`/addcoins @membre montant` — Ajouter des BoostCoins\n"
+                "`/removecoins @membre montant` — Retirer des BoostCoins\n"
+                "`/edititem` — Modifier un item de la boutique\n"
+                "`/postboost` — Afficher le menu manuellement"
             )
 
         await interaction.response.edit_message(embed=embed, view=self)
@@ -150,53 +139,45 @@ class BoostCommands(commands.Cog):
         if channel:
             embed = discord.Embed(
                 title="📘 Menu BoostCoins",
-                description="Choisis une catégorie ci-dessous pour voir les infos.",
+                description="Choisis une catégorie dans le menu déroulant ci-dessous pour voir les infos.",
                 color=discord.Color.blurple()
             )
             view = BoostHelpView(user=self.bot.user)
-            msg = await channel.send(embed=embed, view=view)
-            view.message = msg
-
-    @app_commands.command(name="removecoins", description="Retirer des BoostCoins à un membre.")
-    @app_commands.checks.has_permissions(administrator=True)
-    @app_commands.describe(member="Membre à qui retirer des coins", amount="Montant à retirer")
-    async def removecoins(self, interaction: discord.Interaction, member: discord.Member, amount: int):
-        if amount <= 0:
-            await interaction.response.send_message("Le montant doit être positif.", ephemeral=True)
-            return
-
-        current_coins = get_balance(member.id)
-        if current_coins < amount:
-            await interaction.response.send_message(f"{member.display_name} n'a pas assez de BoostCoins ({current_coins}).", ephemeral=True)
-            return
-
-        remove_coins(member.id, amount)
-        await interaction.response.send_message(f"✅ Retiré {amount} BoostCoins à {member.display_name}.", ephemeral=True)
-
+            await channel.send(embed=embed, view=view)
 
     @app_commands.command(name="addcoins", description="Ajouter des BoostCoins à un membre.")
     @app_commands.checks.has_permissions(administrator=True)
-    @app_commands.describe(member="Membre à qui ajouter des coins", amount="Montant à ajouter")
     async def addcoins(self, interaction: discord.Interaction, member: discord.Member, amount: int):
         if amount <= 0:
-            await interaction.response.send_message("Le montant doit être positif.", ephemeral=True)
+            await interaction.response.send_message("❌ Le montant doit être positif.", ephemeral=True)
             return
-
         add_coins(member.id, amount)
-        await interaction.response.send_message(f"✅ Ajouté {amount} BoostCoins à {member.display_name}.", ephemeral=True)
+        await interaction.response.send_message(f"✅ {amount} BoostCoins ajoutés à {member.display_name}.", ephemeral=True)
+
+    @app_commands.command(name="removecoins", description="Retirer des BoostCoins à un membre.")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def removecoins(self, interaction: discord.Interaction, member: discord.Member, amount: int):
+        if amount <= 0:
+            await interaction.response.send_message("❌ Le montant doit être positif.", ephemeral=True)
+            return
+        current = get_balance(member.id)
+        if current < amount:
+            await interaction.response.send_message(f"❌ {member.display_name} n’a que {current} BoostCoins.", ephemeral=True)
+            return
+        remove_coins(member.id, amount)
+        await interaction.response.send_message(f"✅ {amount} BoostCoins retirés à {member.display_name}.", ephemeral=True)
 
     @app_commands.command(name="postboost", description="Affiche manuellement le menu BoostCoins dans ce salon.")
     @app_commands.checks.has_permissions(administrator=True)
     async def postboost(self, interaction: discord.Interaction):
         embed = discord.Embed(
-            title="📘 Aide BoostCoins",
-            description="Choisis une catégorie dans le menu déroulant ci-dessous pour voir les commandes et infos en direct.",
+            title="📘 Menu BoostCoins",
+            description="Choisis une catégorie dans le menu déroulant ci-dessous pour voir les infos.",
             color=discord.Color.blurple()
         )
         view = BoostHelpView(user=interaction.user)
-        msg = await interaction.channel.send(embed=embed, view=view)
-        view.message = msg
-        await interaction.response.send_message("✅ Menu BoostCoins publié dans ce salon.", ephemeral=True)
+        await interaction.channel.send(embed=embed, view=view)
+        await interaction.response.send_message("✅ Menu BoostCoins affiché ici.", ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(BoostCommands(bot))
