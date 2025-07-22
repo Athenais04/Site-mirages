@@ -12,7 +12,30 @@ from database import init_db, add_coins, get_balance
 
 init_db()
 
-db_path = "/opt/render/project/src/boostcoins.db"
+DB_PATH = "/opt/render/project/src/boostcoins.db"
+
+def init_db():
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY,
+            username TEXT NOT NULL,
+            coins INTEGER DEFAULT 0
+        )
+        """)
+        conn.commit()
+        conn.close()
+    except sqlite3.DatabaseError as e:
+        if "malformed" in str(e):
+            print("❌ Base de données corrompue, suppression...")
+            conn.close()
+            os.remove(DB_PATH)
+            print("✅ Base supprimée. Nouvelle tentative d'initialisation...")
+            init_db()
+        else:
+            raise e
 
 if os.path.exists(db_path):
     os.remove(db_path)
