@@ -136,6 +136,17 @@ class BoostCommands(commands.Cog):
             view = MemberMenuView(user=self.bot.user)
             await channel.send(embed=embed, view=view)
 
+@app_commands.command(name="addcoins", description="Ajoute des BoostCoins à un membre")
+@app_commands.describe(membre="Le membre à créditer", montant="Montant à ajouter")
+async def addcoins(self, interaction: discord.Interaction, membre: discord.Member, montant: int):
+    from database import add_coins, get_balance
+    add_coins(membre.id, montant)
+    balance = get_balance(membre.id)
+    await interaction.response.send_message(
+        f"✅ {montant} BoostCoins ajoutés à {membre.mention}. Solde : {balance} 💰",
+        ephemeral=True
+    )
+
     @app_commands.command(name="postmenu", description="Affiche le menu BoostCoins adapté à ton rôle")
     async def postmenu(self, interaction: discord.Interaction):
         roles = [r.name.lower() for r in interaction.user.roles]
