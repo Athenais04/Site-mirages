@@ -4,7 +4,6 @@ import threading
 import discord
 from discord.ext import commands
 from discord import app_commands
-from cogs.boost import BoostHelpView
 from flask import Flask
 
 # Import et initialisation base de données
