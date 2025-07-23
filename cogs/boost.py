@@ -123,18 +123,29 @@ class BoostCommands(commands.Cog):
         self.post_menu_once.cancel()
 
     @tasks.loop(count=1)
-    async def post_menu_once(self):
-        await self.bot.wait_until_ready()
-        guild = self.bot.get_guild(GUILD_ID)
-        channel = guild.get_channel(CHANNEL_ID)
-        if channel:
-            embed = discord.Embed(
-                title="📘 Menu BoostCoins",
-                description="Choisis une section dans le menu déroulant ci-dessous pour voir tes infos.",
-                color=discord.Color.blurple()
-            )
-            view = MemberMenuView(user=self.bot.user)
-            await channel.send(embed=embed, view=view)
+async def post_menu_once(self):
+    await self.bot.wait_until_ready()
+    guild = self.bot.get_guild(GUILD_ID)
+    channel = guild.get_channel(CHANNEL_ID)
+    if channel:
+        # Menu Membre
+        embed = discord.Embed(
+            title="📘 Menu BoostCoins",
+            description="Choisis une section dans le menu déroulant ci-dessous pour voir tes infos.",
+            color=discord.Color.blurple()
+        )
+        view = MemberMenuView(user=self.bot.user)
+        await channel.send(embed=embed, view=view)
+
+        # Menu Staff
+        embed_admin = discord.Embed(
+            title="🛠️ Menu Staff BoostCoins",
+            description="Outils de gestion BoostCoins accessibles au staff.",
+            color=discord.Color.gold()
+        )
+        admin_view = AdminMenuView(user=self.bot.user)
+        await channel.send(embed=embed_admin, view=admin_view)
+
 
 @app_commands.command(name="addcoins", description="Ajoute des BoostCoins à un membre")
 @app_commands.describe(membre="Le membre à créditer", montant="Montant à ajouter")
