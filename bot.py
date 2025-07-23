@@ -15,9 +15,6 @@ db_path = "/opt/render/project/src/boostcoins.db"
 
 init_db()
 
-if os.path.exists(db_path):
-    os.remove(db_path)
-
 # Exemple d'utilisation
 user_id_example = 123456
 add_coins(user_id_example, 50)
