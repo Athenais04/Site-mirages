@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands, tasks
-from discord import app_commands
 from database import get_balance, get_top_users, get_inventory, get_shop_items
 
 GUILD_ID = 1382310288115761215
@@ -9,7 +8,7 @@ CHANNEL_ID = 1382315923427295275
 # ========================== MENU MEMBRE ==========================
 
 class MemberMenuSelect(discord.ui.Select):
-    def __init__(self, parent_view):
+    def __init__(self):
         options = [
             discord.SelectOption(label="Solde & Classement", value="balance", emoji="💰"),
             discord.SelectOption(label="Inventaire", value="inventory", emoji="🎒"),
@@ -17,20 +16,10 @@ class MemberMenuSelect(discord.ui.Select):
             discord.SelectOption(label="Boutique", value="shop", emoji="🛍️"),
         ]
         super().__init__(placeholder="📂 Choisis une section...", options=options)
-        self.parent_view = parent_view
 
     async def callback(self, interaction: discord.Interaction):
-        await self.parent_view.update_embed(interaction, self.values[0])
-
-class MemberMenuView(discord.ui.View):
-    def __init__(self, user: discord.User):
-        super().__init__(timeout=None)
-        self.user = user
-        self.select = MemberMenuSelect(self)
-        self.add_item(self.select)
-
-    async def update_embed(self, interaction: discord.Interaction, choice: str):
         embed = discord.Embed(color=discord.Color.blurple())
+        choice = self.values[0]
 
         if choice == "balance":
             balance = get_balance(interaction.user.id)
@@ -41,12 +30,10 @@ class MemberMenuView(discord.ui.View):
                 "**🏆 Top 3 :**\n" +
                 "\n".join([f"<@{uid}> — `{coins} 💰`" for uid, coins in top])
             )
-
         elif choice == "inventory":
             inventory = get_inventory(interaction.user.id)
             embed.title = "🎒 Inventaire"
             embed.description = "\n".join(inventory) if inventory else "Aucun objet dans ton inventaire."
-
         elif choice == "casino":
             embed.title = "🎰 Casino"
             embed.description = (
@@ -54,39 +41,35 @@ class MemberMenuView(discord.ui.View):
                 "`/dice` — Lance les dés contre le bot\n"
                 "`/blackjack` — Joue contre la banque"
             )
-
         elif choice == "shop":
             items = get_shop_items()
             embed.title = "🛍️ Boutique"
             for name, desc, price in items:
                 embed.add_field(name=f"{name} — {price} 💰", value=desc, inline=False)
 
-        await interaction.response.edit_message(embed=embed, view=self)
+        # Envoi une réponse EPHEMERE (visible uniquement par celui qui clique)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+
+class MemberMenuView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.add_item(MemberMenuSelect())
 
 # ========================== MENU STAFF ==========================
 
 class AdminMenuSelect(discord.ui.Select):
-    def __init__(self, parent_view):
+    def __init__(self):
         options = [
             discord.SelectOption(label="Gestion BoostCoins", value="coins", emoji="🪙"),
             discord.SelectOption(label="Gestion Boutique", value="shop", emoji="🛍️"),
             discord.SelectOption(label="Gestion des Inventaires", value="inventory", emoji="🎒"),
         ]
         super().__init__(placeholder="🛠️ Menu staff : choisis une section", options=options)
-        self.parent_view = parent_view
 
     async def callback(self, interaction: discord.Interaction):
-        await self.parent_view.update_embed(interaction, self.values[0])
-
-class AdminMenuView(discord.ui.View):
-    def __init__(self, user: discord.User):
-        super().__init__(timeout=None)
-        self.user = user
-        self.select = AdminMenuSelect(self)
-        self.add_item(self.select)
-
-    async def update_embed(self, interaction: discord.Interaction, choice: str):
         embed = discord.Embed(color=discord.Color.gold())
+        choice = self.values[0]
 
         if choice == "coins":
             embed.title = "🪙 Gestion BoostCoins"
@@ -94,7 +77,6 @@ class AdminMenuView(discord.ui.View):
                 "`/addcoins @membre montant` — Ajouter des BoostCoins\n"
                 "`/removecoins @membre montant` — Retirer des BoostCoins"
             )
-
         elif choice == "shop":
             embed.title = "🛍️ Gestion Boutique"
             embed.description = (
@@ -102,7 +84,6 @@ class AdminMenuView(discord.ui.View):
                 "`/additem` — Ajouter un objet à la boutique\n"
                 "`/removeitem` — Supprimer un objet"
             )
-
         elif choice == "inventory":
             embed.title = "🎒 Gestion des Inventaires"
             embed.description = (
@@ -110,7 +91,14 @@ class AdminMenuView(discord.ui.View):
                 "`/removeitemfrom @membre objet` — Retirer un objet"
             )
 
-        await interaction.response.edit_message(embed=embed, view=self)
+        # Réponse EPHEMERE au staff
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+class AdminMenuView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.add_item(AdminMenuSelect())
+
 
 # ========================== COG ==========================
 
@@ -127,55 +115,30 @@ class BoostCommands(commands.Cog):
         await self.bot.wait_until_ready()
         guild = self.bot.get_guild(GUILD_ID)
         channel = guild.get_channel(CHANNEL_ID)
+
         if not guild or not channel:
             print("❌ Serveur ou salon introuvable.")
             return
 
-        # Menu Membre
-        embed = discord.Embed(
+        # Post menu membre
+        embed_member = discord.Embed(
             title="📘 Menu BoostCoins",
-            description="Choisis une section dans le menu déroulant ci-dessous pour voir tes infos.",
+            description="Choisis une section dans le menu déroulant ci-dessous.",
             color=discord.Color.blurple()
         )
-        view = MemberMenuView(user=self.bot.user)
-        await channel.send(embed=embed, view=view)
+        await channel.send(embed=embed_member, view=MemberMenuView())
 
-        # Menu Staff : visible uniquement si le rôle "staff" existe
+        # Post menu staff si rôle existe
         staff_role = discord.utils.get(guild.roles, name="staff")
         if staff_role:
-            embed_admin = discord.Embed(
+            embed_staff = discord.Embed(
                 title="🛠️ Menu Staff BoostCoins",
                 description="Outils de gestion BoostCoins accessibles au staff.",
                 color=discord.Color.gold()
             )
-            admin_view = AdminMenuView(user=self.bot.user)
-            await channel.send(embed=embed_admin, view=admin_view)
+            await channel.send(embed=embed_staff, view=AdminMenuView())
         else:
             print("⚠️ Rôle 'staff' non trouvé sur le serveur.")
-
-    @app_commands.command(name="postmenu", description="Affiche le menu BoostCoins adapté à ton rôle")
-    async def postmenu(self, interaction: discord.Interaction):
-        roles = [r.name.lower() for r in interaction.user.roles]
-        if "staff" in roles:
-            view = AdminMenuView(user=interaction.user)
-            embed = discord.Embed(
-                title="🛠️ Menu Administration BoostCoins",
-                description="Outils de gestion BoostCoins accessibles au staff.",
-                color=discord.Color.gold()
-            )
-        elif "membre" in roles:
-            view = MemberMenuView(user=interaction.user)
-            embed = discord.Embed(
-                title="📘 Menu BoostCoins",
-                description="Choisis une section dans le menu déroulant ci-dessous pour voir tes infos.",
-                color=discord.Color.blurple()
-            )
-        else:
-            await interaction.response.send_message("❌ Tu n'as pas accès à ce menu.", ephemeral=True)
-            return
-
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
-
 
 async def setup(bot):
     await bot.add_cog(BoostCommands(bot))
