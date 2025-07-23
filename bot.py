@@ -1,5 +1,6 @@
 import sys
 import os
+import sqlite3
 import threading
 import discord
 from discord.ext import commands
