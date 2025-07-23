@@ -119,3 +119,37 @@ def get_shop_item(name: str):
     item = cur.fetchone()
     conn.close()
     return item
+
+def update_shop_item(name: str, new_description: str, new_price: int):
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("""
+        UPDATE shop
+        SET description = ?, price = ?
+        WHERE name = ?
+    """, (new_description, new_price, name))
+    conn.commit()
+    conn.close()
+
+def delete_shop_item(name: str):
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("DELETE FROM shop WHERE name = ?", (name,))
+    conn.commit()
+    conn.close()
+
+def buy_item(user_id: int, item_name: str) -> bool:
+    item = get_shop_item(item_name)
+    if not item:
+        return False  # L'objet n'existe pas
+
+    name, desc, price = item
+    balance = get_balance(user_id)
+
+    if balance < price:
+        return False  # Pas assez de coins
+
+    remove_coins(user_id, price)
+    add_item_to_inventory(user_id, item_name)
+    return True
+
