@@ -122,36 +122,36 @@ class BoostCommands(commands.Cog):
     def cog_unload(self):
         self.post_menu_once.cancel()
 
-@tasks.loop(count=1)
-async def post_menu_once(self):
-    await self.bot.wait_until_ready()
-    guild = self.bot.get_guild(GUILD_ID)
-    channel = guild.get_channel(CHANNEL_ID)
-    if not guild or not channel:
-        print("❌ Serveur ou salon introuvable.")
-        return
+    @tasks.loop(count=1)
+    async def post_menu_once(self):
+        await self.bot.wait_until_ready()
+        guild = self.bot.get_guild(GUILD_ID)
+        channel = guild.get_channel(CHANNEL_ID)
+        if not guild or not channel:
+            print("❌ Serveur ou salon introuvable.")
+            return
 
-    # Menu Membre
-    embed = discord.Embed(
-        title="📘 Menu BoostCoins",
-        description="Choisis une section dans le menu déroulant ci-dessous pour voir tes infos.",
-        color=discord.Color.blurple()
-    )
-    view = MemberMenuView(user=self.bot.user)
-    await channel.send(embed=embed, view=view)
-
-    # Menu Staff : visible uniquement si le rôle "staff" existe
-    staff_role = discord.utils.get(guild.roles, name="staff")
-    if staff_role:
-        embed_admin = discord.Embed(
-            title="🛠️ Menu Staff BoostCoins",
-            description="Outils de gestion BoostCoins accessibles au staff.",
-            color=discord.Color.gold()
+        # Menu Membre
+        embed = discord.Embed(
+            title="📘 Menu BoostCoins",
+            description="Choisis une section dans le menu déroulant ci-dessous pour voir tes infos.",
+            color=discord.Color.blurple()
         )
-        admin_view = AdminMenuView(user=self.bot.user)
-        await channel.send(embed=embed_admin, view=admin_view)
-    else:
-        print("⚠️ Rôle 'staff' non trouvé sur le serveur.")
+        view = MemberMenuView(user=self.bot.user)
+        await channel.send(embed=embed, view=view)
+
+        # Menu Staff : visible uniquement si le rôle "staff" existe
+        staff_role = discord.utils.get(guild.roles, name="staff")
+        if staff_role:
+            embed_admin = discord.Embed(
+                title="🛠️ Menu Staff BoostCoins",
+                description="Outils de gestion BoostCoins accessibles au staff.",
+                color=discord.Color.gold()
+            )
+            admin_view = AdminMenuView(user=self.bot.user)
+            await channel.send(embed=embed_admin, view=admin_view)
+        else:
+            print("⚠️ Rôle 'staff' non trouvé sur le serveur.")
 
     @app_commands.command(name="postmenu", description="Affiche le menu BoostCoins adapté à ton rôle")
     async def postmenu(self, interaction: discord.Interaction):
@@ -175,6 +175,7 @@ async def post_menu_once(self):
             return
 
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
 
 async def setup(bot):
     await bot.add_cog(BoostCommands(bot))
