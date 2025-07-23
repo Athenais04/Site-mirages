@@ -10,9 +10,6 @@ from flask import Flask
 # Import et initialisation base de données
 from database import init_db, add_coins, get_balance
 
-# Définir le chemin de la base de données
-db_path = "/opt/render/project/src/boostcoins.db"
-
 init_db()
 
 # Exemple d'utilisation
